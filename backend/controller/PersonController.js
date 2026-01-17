@@ -59,20 +59,17 @@ export const updatePerson = async (req, res) => {
 
 
 // ✅ SEARCH PERSONS
-export const searchsuggestion  =  async (req, res) => {
+export const searchsuggestion = async (req, res) => {
   try {
-    const { query } = req.query;
-    
+    const { q } = req.query;
     const persons = await Person.find({
       $or: [
-        { fullName: { $regex: query, $options: 'i' } },
-        { documentNumber: { $regex: query, $options: 'i' } },
-        { phone: { $regex: query, $options: 'i' } }
+        { fullName: { $regex: q, $options: 'i' } },
+        { phone: { $regex: q, $options: 'i' } }
       ]
-    }).limit(10).select('fullName documentType documentNumber phone');
-    
+    }).limit(10);
     res.json(persons);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
-};
+}

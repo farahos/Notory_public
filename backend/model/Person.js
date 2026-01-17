@@ -8,7 +8,7 @@ const personSchema = new mongoose.Schema({
   address: { type: String,  },
   nationality: { type: String, default: 'Somali' },
   phone: { type: String,  },
-  gender : {type : String , enum :["Male","Famale"]},
+  gender : {type : String , enum :["Male","Female"]},
   documentType: {   
     type: String, 
     enum:  ["Passport", "ID Card", "Niira", "Sugnan", "Laysin"], 

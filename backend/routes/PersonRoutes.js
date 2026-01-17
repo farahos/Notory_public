@@ -15,6 +15,6 @@ router.get("/:id", getPersonById);
 router.post("/", createPerson);
 router.delete("/:id", deletePerson);
 router.put("/:id", updatePerson);
-router.get('/search', searchsuggestion)
+router.get('/api/persons/search', searchsuggestion)
 
 export default router;
