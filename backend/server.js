@@ -9,6 +9,8 @@ import aggrementRoutes from './routes/agreementroutes.js';
 import personRoutes from './routes/PersonRoutes.js';
 import motorcycleRoutes from './routes/motorcycleroutes.js';
 import shareRoutes from './routes/shareroutes.js'
+import wakaladRoutes from './routes/wakaladRoutes.js';
+import tasdiiqRoutes from './routes/tasdiiqRoutes.js';
 const app = express();
 const PORT = 8000
 
@@ -21,6 +23,8 @@ app.use('/api/agreements', aggrementRoutes);
 app.use("/api/persons", personRoutes);
 app.use("/api/motors", motorcycleRoutes);
 app.use("/api/shares", shareRoutes);
+app.use("/api/wakaalads", wakaladRoutes);
+app.use("/api/tasdiiqs", tasdiiqRoutes);
 
 
 // forget password

@@ -1,8 +1,9 @@
 import Agreement from "../model/Agreement.js";
+import mongoose from "mongoose";
 
 /* ===============================
    HELPER: GENERATE REF NO
-   001/BQL/2026
+   Format: 001/BQL/2026
 ================================ */
 const generateRefNo = async () => {
   const year = new Date().getFullYear();
@@ -12,13 +13,136 @@ const generateRefNo = async () => {
   }).sort({ createdAt: -1 });
 
   let nextNumber = 1;
-
   if (lastAgreement) {
     const lastNum = parseInt(lastAgreement.refNo.split("/")[0]);
     nextNumber = lastNum + 1;
   }
 
   return `${String(nextNumber).padStart(3, "0")}/BQL/${year}`;
+};
+
+/* ===============================
+   GET AGREEMENT BY ID - SIMPLIFY POPULATE
+================================ */
+export const getAgreementById = async (req, res) => {
+  try {
+    const agreement = await Agreement.findById(req.params.id)
+      .populate("dhinac1.sellers")
+      .populate("dhinac1.agents")
+      .populate("dhinac2.buyers")
+      .populate("dhinac2.agents")
+      .populate("dhinac2.guarantors")
+      .populate("createdBy", "username");
+
+    // Handle agentDocument populate separately
+    if (agreement && agreement.dhinac1?.agentDocument?.docRef) {
+      const docType = agreement.dhinac1.agentDocument.docType;
+      
+      if (docType === "Wakaalad") {
+        await agreement.populate({
+          path: "dhinac1.agentDocument.docRef",
+          model: "Wakaalad"
+        });
+      } else if (docType === "Tasdiiq") {
+        await agreement.populate({
+          path: "dhinac1.agentDocument.docRef",
+          model: "Tasdiiq"
+        });
+      }
+    }
+
+    if (!agreement) {
+      return res.status(404).json({ message: "Agreement not found" });
+    }
+
+    res.json(agreement);
+  } catch (error) {
+    console.error("Error getting agreement:", error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+/* ===============================
+   GET ALL AGREEMENTS - SIMPLIFY POPULATE
+================================ */
+export const getAgreements = async (req, res) => {
+  try {
+    const agreements = await Agreement.find()
+      .populate("dhinac1.sellers")
+      .populate("dhinac1.agents")
+      .populate("dhinac2.buyers")
+      .populate("dhinac2.agents")
+      .populate("dhinac2.guarantors")
+      .populate("createdBy", "username");
+
+    // Handle agentDocument populate for each agreement
+    for (let agreement of agreements) {
+      if (agreement.dhinac1?.agentDocument?.docRef) {
+        const docType = agreement.dhinac1.agentDocument.docType;
+        
+        if (docType === "Wakaalad") {
+          await agreement.populate({
+            path: "dhinac1.agentDocument.docRef",
+            model: "Wakaalad"
+          });
+        } else if (docType === "Tasdiiq") {
+          await agreement.populate({
+            path: "dhinac1.agentDocument.docRef",
+            model: "Tasdiiq"
+          });
+        }
+      }
+    }
+
+    res.json(agreements);
+  } catch (error) {
+    console.error("Error getting agreements:", error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+/* ===============================
+   UPDATE AGREEMENT - SIMPLIFY POPULATE
+================================ */
+export const updateAgreement = async (req, res) => {
+  try {
+    const agreement = await Agreement.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      { new: true }
+    )
+      .populate("dhinac1.sellers")
+      .populate("dhinac1.agents")
+      .populate("dhinac2.buyers")
+      .populate("dhinac2.agents")
+      .populate("dhinac2.guarantors");
+
+    if (!agreement) {
+      return res.status(404).json({ message: "Agreement not found" });
+    }
+
+    // Handle agentDocument populate separately
+    if (agreement.dhinac1?.agentDocument?.docRef) {
+      const docType = agreement.dhinac1.agentDocument.docType;
+      
+      if (docType === "Wakaalad") {
+        await agreement.populate({
+          path: "dhinac1.agentDocument.docRef",
+          model: "Wakaalad"
+        });
+      } else if (docType === "Tasdiiq") {
+        await agreement.populate({
+          path: "dhinac1.agentDocument.docRef",
+          model: "Tasdiiq"
+        });
+      }
+    }
+
+    res.json(agreement);
+  } catch (error) {
+    console.error("Error updating agreement:", error);
+    res.status(500).json({ message: error.message });
+  }
 };
 
 /* ===============================
@@ -31,11 +155,21 @@ export const createAgreement = async (req, res) => {
     const agreement = await Agreement.create({
       ...req.body,
       refNo,
-        createdBy: req.user._id, // ⭐ MUHIIM
+      createdBy: req.user._id,
     });
 
-    res.status(201).json(agreement);
+    // Populate after creation
+    const populatedAgreement = await Agreement.findById(agreement._id)
+      .populate("dhinac1.sellers")
+      .populate("dhinac1.agents")
+      .populate("dhinac2.buyers")
+      .populate("dhinac2.agents")
+      .populate("dhinac2.guarantors")
+      .populate("createdBy", "username");
+
+    res.status(201).json(populatedAgreement);
   } catch (error) {
+    console.error("Error creating agreement:", error);
     if (error.code === 11000) {
       return res.status(409).json({ message: "Duplicate refNo" });
     }
@@ -43,61 +177,175 @@ export const createAgreement = async (req, res) => {
   }
 };
 
-/* ===============================
-   GET ALL AGREEMENTS
-================================ */
-export const getAgreements = async (req, res) => {
+/* =====================================================
+   ADD PERSON (SELLER / BUYER / AGENT / GUARANTOR)
+===================================================== */
+export const addPersonToAgreement = async (req, res) => {
   try {
-    const agreements = await Agreement.find()
-      .populate("dhinac1.sellers dhinac1.agents dhinac1.guarantors")
-      .populate("dhinac2.buyers dhinac2.agents dhinac2.guarantors")
-      .populate("createdBy" ,"username");
+    const { agreementId } = req.params;
+    const { side, role, personId } = req.body;
 
-    res.json(agreements);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-};
+    console.log("Adding person:", { agreementId, side, role, personId });
 
-
-/* ===============================
-   GET AGREEMENT BY ID
-================================ */
-export const getAgreementById = async (req, res) => {
-  try {
-    const agreement = await Agreement.findById(req.params.id)
-      .populate("dhinac1.sellers dhinac1.agents dhinac1.guarantors")
-      .populate("dhinac2.buyers dhinac2.agents dhinac2.guarantors")
-      .populate("createdBy", "username");
-
-    if (!agreement) {
-      return res.status(404).json({ message: "Agreement not found" });
+    if (!["dhinac1", "dhinac2"].includes(side)) {
+      return res.status(400).json({ message: "Invalid side" });
     }
 
-    res.json(agreement);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-};
+    // Validate personId is a valid ObjectId
+    if (!mongoose.Types.ObjectId.isValid(personId)) {
+      return res.status(400).json({ message: "Invalid person ID" });
+    }
 
+    const allowedRoles =
+      side === "dhinac1"
+        ? ["sellers", "agents"]
+        : ["buyers", "agents", "guarantors"];
 
-/* ===============================
-   UPDATE AGREEMENT
-================================ */
-export const updateAgreement = async (req, res) => {
-  try {
+    if (!allowedRoles.includes(role)) {
+      return res.status(400).json({ message: "Invalid role" });
+    }
+
     const agreement = await Agreement.findByIdAndUpdate(
-      req.params.id,
-      req.body,
+      agreementId,
+      { $addToSet: { [`${side}.${role}`]: personId } },
       { new: true }
-    );
+    )
+      .populate("dhinac1.sellers")
+      .populate("dhinac1.agents")
+      .populate("dhinac2.buyers")
+      .populate("dhinac2.agents")
+      .populate("dhinac2.guarantors");
 
     if (!agreement) {
       return res.status(404).json({ message: "Agreement not found" });
     }
 
+    // Handle agentDocument populate separately
+    if (agreement.dhinac1?.agentDocument?.docRef) {
+      const docType = agreement.dhinac1.agentDocument.docType;
+      
+      if (docType === "Wakaalad") {
+        await agreement.populate({
+          path: "dhinac1.agentDocument.docRef",
+          model: "Wakaalad"
+        });
+      } else if (docType === "Tasdiiq") {
+        await agreement.populate({
+          path: "dhinac1.agentDocument.docRef",
+          model: "Tasdiiq"
+        });
+      }
+    }
+
     res.json(agreement);
   } catch (error) {
+    console.error("Error adding person:", error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+/* =====================================================
+   REMOVE PERSON
+===================================================== */
+export const removePersonFromAgreement = async (req, res) => {
+  try {
+    const { agreementId } = req.params;
+    const { side, role, personId } = req.body;
+
+    console.log("Removing person:", { agreementId, side, role, personId });
+
+    if (!mongoose.Types.ObjectId.isValid(personId)) {
+      return res.status(400).json({ message: "Invalid person ID" });
+    }
+
+    const agreement = await Agreement.findByIdAndUpdate(
+      agreementId,
+      { $pull: { [`${side}.${role}`]: personId } },
+      { new: true }
+    )
+      .populate("dhinac1.sellers")
+      .populate("dhinac1.agents")
+      .populate("dhinac2.buyers")
+      .populate("dhinac2.agents")
+      .populate("dhinac2.guarantors");
+
+    if (!agreement) {
+      return res.status(404).json({ message: "Agreement not found" });
+    }
+
+    // Handle agentDocument populate separately
+    if (agreement.dhinac1?.agentDocument?.docRef) {
+      const docType = agreement.dhinac1.agentDocument.docType;
+      
+      if (docType === "Wakaalad") {
+        await agreement.populate({
+          path: "dhinac1.agentDocument.docRef",
+          model: "Wakaalad"
+        });
+      } else if (docType === "Tasdiiq") {
+        await agreement.populate({
+          path: "dhinac1.agentDocument.docRef",
+          model: "Tasdiiq"
+        });
+      }
+    }
+
+    res.json(agreement);
+  } catch (error) {
+    console.error("Error removing person:", error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+/* =====================================================
+   SET AGENT DOCUMENT (Wakaalad / Tasdiiq)
+===================================================== */
+export const setAgentDocument = async (req, res) => {
+  try {
+    const { agreementId } = req.params;
+    const { docType, docRef } = req.body;
+
+    console.log("Setting agent document:", { agreementId, docType, docRef });
+
+    if (!["Wakaalad", "Tasdiiq"].includes(docType)) {
+      return res.status(400).json({ message: "Invalid docType" });
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(docRef)) {
+      return res.status(400).json({ message: "Invalid document ID" });
+    }
+
+    const agreement = await Agreement.findByIdAndUpdate(
+      agreementId,
+      { "dhinac1.agentDocument": { docType, docRef } },
+      { new: true }
+    )
+      .populate("dhinac1.sellers")
+      .populate("dhinac1.agents")
+      .populate("dhinac2.buyers")
+      .populate("dhinac2.agents")
+      .populate("dhinac2.guarantors");
+
+    if (!agreement) {
+      return res.status(404).json({ message: "Agreement not found" });
+    }
+
+    // Populate the document based on its type
+    if (docType === "Wakaalad") {
+      await agreement.populate({
+        path: "dhinac1.agentDocument.docRef",
+        model: "Wakaalad"
+      });
+    } else if (docType === "Tasdiiq") {
+      await agreement.populate({
+        path: "dhinac1.agentDocument.docRef",
+        model: "Tasdiiq"
+      });
+    }
+
+    res.json(agreement);
+  } catch (error) {
+    console.error("Error setting agent document:", error);
     res.status(500).json({ message: error.message });
   }
 };
@@ -115,6 +363,7 @@ export const deleteAgreement = async (req, res) => {
 
     res.json({ message: "Agreement deleted successfully" });
   } catch (error) {
+    console.error("Error deleting agreement:", error);
     res.status(500).json({ message: error.message });
   }
 };
@@ -127,81 +376,7 @@ export const getNextRefNo = async (req, res) => {
     const refNo = await generateRefNo();
     res.json({ refNo });
   } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-};
-
-/* =====================================================
-   ADD PERSON (SELLER / BUYER / AGENT / GUARANTOR)
-   side: dhinac1 | dhinac2
-   role: sellers | buyers | agents | guarantors
-===================================================== */
-export const addPersonToAgreement = async (req, res) => {
-  try {
-    const { agreementId } = req.params;
-    const { side, role, personId } = req.body;
-
-    if (!["dhinac1", "dhinac2"].includes(side)) {
-      return res.status(400).json({ message: "Invalid side" });
-    }
-
-    const allowedRoles =
-      side === "dhinac1"
-        ? ["sellers", "agents", "guarantors"]
-        : ["buyers", "agents", "guarantors"];
-
-    if (!allowedRoles.includes(role)) {
-      return res.status(400).json({ message: "Invalid role" });
-    }
-
-    const agreement = await Agreement.findByIdAndUpdate(
-      agreementId,
-      {
-        $addToSet: {
-          [`${side}.${role}`]: personId, // duplicate ma galayo
-        },
-      },
-      { new: true }
-    )
-      .populate("dhinac1.sellers dhinac1.agents dhinac1.guarantors")
-      .populate("dhinac2.buyers dhinac2.agents dhinac2.guarantors");
-
-    if (!agreement) {
-      return res.status(404).json({ message: "Agreement not found" });
-    }
-
-    res.json(agreement);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-};
-
-/* =====================================================
-   REMOVE PERSON
-===================================================== */
-export const removePersonFromAgreement = async (req, res) => {
-  try {
-    const { agreementId } = req.params;
-    const { side, role, personId } = req.body;
-
-    const agreement = await Agreement.findByIdAndUpdate(
-      agreementId,
-      {
-        $pull: {
-          [`${side}.${role}`]: personId,
-        },
-      },
-      { new: true }
-    )
-      .populate("dhinac1.sellers dhinac1.agents dhinac1.guarantors")
-      .populate("dhinac2.buyers dhinac2.agents dhinac2.guarantors");
-
-    if (!agreement) {
-      return res.status(404).json({ message: "Agreement not found" });
-    }
-
-    res.json(agreement);
-  } catch (error) {
+    console.error("Error getting next ref no:", error);
     res.status(500).json({ message: error.message });
   }
 };

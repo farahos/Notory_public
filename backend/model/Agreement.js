@@ -14,11 +14,25 @@ const agreementSchema = new mongoose.Schema(
       index: true,
     },
 
-    serviceType: {
-      type: String,
-      enum: ["Land", "Car", "Motor", "Share"],
-      required: true,
-    },
+   service: {
+  type: String,
+  enum: ["Wareejin", "Wakaalad"],
+  required: true,
+},
+
+serviceType: {
+  type: String,
+  enum: [
+    "Land",
+    "Car",
+    "Motor",
+    "Share",
+    "Wakaalad Guud",
+    "Wakaalad Gaar",
+  ],
+  required: true,
+},
+
 
     serviceRef: {
       type: mongoose.Schema.Types.ObjectId,
@@ -27,9 +41,10 @@ const agreementSchema = new mongoose.Schema(
 
     agreementType: {
       type: String,
-      required: true,
-      enum : ["Beec", "Hibo", "Waqaf", ]
+    
+      enum: ["Beec", "Hibo", "Waqaf"],
     },
+
     officeFee: {
       type: Number,
       required: true,
@@ -37,7 +52,6 @@ const agreementSchema = new mongoose.Schema(
 
     sellingPrice: {
       type: Number,
-     
     },
 
     // ================= DHINACA 1AAD =================
@@ -51,15 +65,19 @@ const agreementSchema = new mongoose.Schema(
       agents: [
         {
           type: mongoose.Schema.Types.ObjectId,
-          ref: "Person",
+          ref: "Person", // Agent = Person document (wakaalad/tasdiiq)
         },
       ],
-      guarantors: [
-        {
+      agentDocument: {
+        docType: {
+          type: String,
+          enum: ["Wakaalad", "Tasdiiq"],
+        },
+        docRef: {
           type: mongoose.Schema.Types.ObjectId,
-          ref: "Person",
+          refPath: "dhinac1.agentDocument.docType", // docRef = document wakaalad/tasdiiq
         },
-      ],
+      },
     },
 
     // ================= DHINACA 2AAD =================
@@ -73,7 +91,7 @@ const agreementSchema = new mongoose.Schema(
       agents: [
         {
           type: mongoose.Schema.Types.ObjectId,
-          ref: "Person",
+          ref: "Person", // Agent = Person toos ah
         },
       ],
       guarantors: [
@@ -97,5 +115,24 @@ const agreementSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+
+agreementSchema.pre("validate", function (next) {
+  if (this.service === "Wareejin") {
+    const allowed = ["Land", "Car", "Motor", "Share"];
+    if (!allowed.includes(this.serviceType)) {
+      return next(new Error("Invalid serviceType for Wareejin"));
+    }
+  }
+
+  if (this.service === "Wakaalad") {
+    const allowed = ["Wakaalad Guud", "Wakaalad Gaar"];
+    if (!allowed.includes(this.serviceType)) {
+      return next(new Error("Invalid serviceType for Wakaalad"));
+    }
+  }
+
+  next();
+});
+
 
 export default mongoose.model("Agreement", agreementSchema);

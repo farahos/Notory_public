@@ -7,6 +7,7 @@ import {
   getAgreements,
   getNextRefNo,
   removePersonFromAgreement,
+  setAgentDocument,
   updateAgreement,
 } from "../controller/agreementcontroller.js";
 import { authenticate } from "../middleware/authmiddleware.js";
@@ -27,6 +28,6 @@ router.delete("/:id", deleteAgreement);
 
 router.put("/:agreementId/add-person", addPersonToAgreement);
 router.put("/:agreementId/remove-person", removePersonFromAgreement);
-
+router.put("/:agreementId/agent-document", authenticate, setAgentDocument);
 
 export default router;
