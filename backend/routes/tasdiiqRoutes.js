@@ -6,13 +6,14 @@ import {
   updateTasdiiq,
   deleteTasdiiq,
 } from "../controller/tasdiiqController.js";
+import { authenticate, authorizeRoles } from "../middleware/authmiddleware.js";
 
 const router = express.Router();
 
-router.post("/", createTasdiiq);
-router.get("/", getAllTasdiiq);
-router.get("/:id", getTasdiiqById);
-router.put("/:id", updateTasdiiq);
-router.delete("/:id", deleteTasdiiq);
+router.post("/", authenticate, createTasdiiq);
+router.get("/", authenticate, getAllTasdiiq);
+router.get("/:id", authenticate, getTasdiiqById);
+router.put("/:id", authenticate, updateTasdiiq);
+router.delete("/:id", authenticate, authorizeRoles("admin"), deleteTasdiiq);
 
 export default router;

@@ -10,7 +10,7 @@ import {
   setAgentDocument,
   updateAgreement,
 } from "../controller/agreementcontroller.js";
-import { authenticate } from "../middleware/authmiddleware.js";
+import { authenticate, authorizeRoles } from "../middleware/authmiddleware.js";
 
 const router = express.Router();
 
@@ -20,14 +20,14 @@ router.post("/", authenticate ,createAgreement);
 router.get("/next/refno", getNextRefNo);
 
 // Then dynamic routes
-router.get("/", getAgreements);
-router.get("/:id", getAgreementById);
+router.get("/", authenticate, getAgreements);
+router.get("/:id", authenticate, getAgreementById);
 
-router.put("/:id", updateAgreement);
-router.delete("/:id", deleteAgreement);
+router.put("/:id", authenticate, updateAgreement);
+router.delete("/:id", authenticate, authorizeRoles("admin"), deleteAgreement);
 
-router.put("/:agreementId/add-person", addPersonToAgreement);
-router.put("/:agreementId/remove-person", removePersonFromAgreement);
+router.put("/:agreementId/add-person", authenticate, addPersonToAgreement);
+router.put("/:agreementId/remove-person", authenticate, removePersonFromAgreement);
 router.put("/:agreementId/agent-document", authenticate, setAgentDocument);
 
 export default router;

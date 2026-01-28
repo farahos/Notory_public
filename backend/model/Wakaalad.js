@@ -38,7 +38,7 @@ const wakaladSchema = new mongoose.Schema(
 
     saxiix2: {
       type: String,
-      required: true,
+      
     },
   },
   { timestamps: true }

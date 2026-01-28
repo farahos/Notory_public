@@ -6,7 +6,7 @@ import {
   updateWakaalad,
   deleteWakaalad,
 } from "../controller/wakaladController.js";
-import { authenticate } from "../middleware/authmiddleware.js";
+import { authenticate, authorizeRoles } from "../middleware/authmiddleware.js";
 
 const router = express.Router();
 
@@ -23,6 +23,6 @@ router.get("/:id", getWakaaladById);
 router.put("/:id", authenticate, updateWakaalad);
 
 // DELETE
-router.delete("/:id", authenticate, deleteWakaalad);
+router.delete("/:id", authenticate, authorizeRoles("admin"), deleteWakaalad);
 
 export default router;
