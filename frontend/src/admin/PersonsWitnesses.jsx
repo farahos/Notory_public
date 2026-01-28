@@ -925,6 +925,57 @@ const PersonsWitnesses = ({ agreement, fetchData }) => {
     }
   };
 
+  // ================= UPDATE / DELETE DOCUMENTS =================
+  const handleUpdateWakaalad = async (id, updatedData) => {
+    try {
+      const res = await axios.put(`/api/wakaalads/${id}`, updatedData);
+      setWakaalads(prev => prev.map(d => d._id === id ? res.data : d));
+      toast.success("Wakaalad updated");
+      return res.data;
+    } catch (error) {
+      console.error("Error updating wakaalad:", error);
+      toast.error("Failed to update wakaalad");
+      throw error;
+    }
+  };
+
+  const handleDeleteWakaalad = async (id) => {
+    try {
+      await axios.delete(`/api/wakaalads/${id}`);
+      setWakaalads(prev => prev.filter(d => d._id !== id));
+      toast.success("Wakaalad deleted");
+    } catch (error) {
+      console.error("Error deleting wakaalad:", error);
+      toast.error("Failed to delete wakaalad");
+      throw error;
+    }
+  };
+
+  const handleUpdateTasdiiq = async (id, updatedData) => {
+    try {
+      const res = await axios.put(`/api/tasdiiqs/${id}`, updatedData);
+      setTasdiiqs(prev => prev.map(d => d._id === id ? res.data : d));
+      toast.success("Tasdiiq updated");
+      return res.data;
+    } catch (error) {
+      console.error("Error updating tasdiiq:", error);
+      toast.error("Failed to update tasdiiq");
+      throw error;
+    }
+  };
+
+  const handleDeleteTasdiiq = async (id) => {
+    try {
+      await axios.delete(`/api/tasdiiqs/${id}`);
+      setTasdiiqs(prev => prev.filter(d => d._id !== id));
+      toast.success("Tasdiiq deleted");
+    } catch (error) {
+      console.error("Error deleting tasdiiq:", error);
+      toast.error("Failed to delete tasdiiq");
+      throw error;
+    }
+  };
+
   return (
     <div className="space-y-8">
       {/* Sellers Section */}
@@ -1013,6 +1064,10 @@ const PersonsWitnesses = ({ agreement, fetchData }) => {
         tasdiiqs={tasdiiqs}
         onCreateWakaalad={handleCreateWakaalad}
         onCreateTasdiiq={handleCreateTasdiiq}
+        onUpdateWakaalad={handleUpdateWakaalad}
+        onDeleteWakaalad={handleDeleteWakaalad}
+        onUpdateTasdiiq={handleUpdateTasdiiq}
+        onDeleteTasdiiq={handleDeleteTasdiiq}
         onLinkDocument={handleAddAgentDocument}
       />
     </div>
