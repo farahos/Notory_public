@@ -842,41 +842,66 @@ const PersonsWitnesses = ({ agreement, fetchData }) => {
     fetchAllData();
   }, []);
 
-  // ================= AGENT DOCUMENT FUNCTIONS =================
-  const handleAddAgentDocument = async (docType, docId) => {
+  // ================= AGENT DOCUMENT FUNCTIONS (per-agent) =================
+  const handleAddAgentDocument = async (agent, docType, docId, side = 'dhinac1') => {
     try {
+      const agentId = agent?._id || agent;
+      const current = agreement[side] || {};
+      const agentDocuments = current.agentDocuments || {};
+      const existing = agentDocuments[agentId] || {};
+      const field = docType === 'Wakaalad' ? 'wakaalad' : 'tasdiiq';
+      const updatedAgentDocs = {
+        ...agentDocuments,
+        [agentId]: { ...existing, [field]: docId }
+      };
+
       await axios.put(`/api/agreements/${agreement._id}`, {
-        dhinac1: {
-          ...agreement.dhinac1,
-          agentDocument: {
-            docType,
-            docRef: docId
-          }
+        [side]: {
+          ...agreement[side],
+          agentDocuments: updatedAgentDocs
         }
       });
-      
+
       toast.success(`${docType} linked to agent`);
       fetchData();
     } catch (error) {
       console.error("Error linking document:", error);
       toast.error("Failed to link document");
+      throw error;
     }
   };
 
-  const handleRemoveAgentDocument = async () => {
+  const handleRemoveAgentDocument = async (agent, docType, side = 'dhinac1') => {
     try {
+      const agentId = agent?._id || agent;
+      const current = agreement[side] || {};
+      const agentDocuments = { ...(current.agentDocuments || {}) };
+      const existing = agentDocuments[agentId] || {};
+      const field = docType === 'Wakaalad' ? 'wakaalad' : 'tasdiiq';
+
+      if (existing) {
+        const updated = { ...existing };
+        delete updated[field];
+        if (Object.keys(updated).length === 0) {
+          delete agentDocuments[agentId];
+        } else {
+          agentDocuments[agentId] = updated;
+        }
+      }
+
       await axios.put(`/api/agreements/${agreement._id}`, {
-        dhinac1: {
-          ...agreement.dhinac1,
-          agentDocument: null
+        [side]: {
+          ...agreement[side],
+          agentDocuments
         }
       });
-      
-      toast.success("Document removed");
+
+      toast.success(`${docType} removed from agent`);
       fetchData();
     } catch (error) {
       console.error("Error removing document:", error);
       toast.error("Failed to remove document");
+      throw error;
     }
   };
 
@@ -1003,9 +1028,9 @@ const PersonsWitnesses = ({ agreement, fetchData }) => {
         setActiveModal={setActiveModal}
         fetchData={fetchData}
         showDocumentOptions={true}
-        agentDocument={agreement.dhinac1?.agentDocument}
-        onRemoveDocument={handleRemoveAgentDocument}
-        onLinkDocument={(agent) => setActiveModal({type: 'linkDocument', agent})}
+        agentDocuments={agreement.dhinac1?.agentDocuments}
+        onRemoveDocument={(agent, docType) => handleRemoveAgentDocument(agent, docType, 'dhinac1')}
+        onOpenLinkModal={(agent, docType, side) => { setSelectedDocType(docType); setActiveModal({type: 'linkDocument', agent, side: side || 'dhinac1'}); }}
       />
 
       {/* Buyers Section */}
@@ -1032,6 +1057,10 @@ const PersonsWitnesses = ({ agreement, fetchData }) => {
         setAllPersons={setAllPersons}
         setActiveModal={setActiveModal}
         fetchData={fetchData}
+        showDocumentOptions={true}
+        agentDocuments={agreement.dhinac2?.agentDocuments}
+        onRemoveDocument={(agent, docType) => handleRemoveAgentDocument(agent, docType, 'dhinac2')}
+        onOpenLinkModal={(agent, docType, side) => { setSelectedDocType(docType); setActiveModal({type: 'linkDocument', agent, side: side || 'dhinac2'}); }}
       />
 
       {/* Witnesses Section */}

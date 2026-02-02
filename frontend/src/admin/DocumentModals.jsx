@@ -26,6 +26,7 @@ const DocumentModals = ({
   const [loading, setLoading] = useState(true);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [editingDoc, setEditingDoc] = useState(null);
+  const [createTasdiiqWithWakaalad, setCreateTasdiiqWithWakaalad] = useState(false);
 
   useEffect(() => {
     if (activeModal?.type === 'linkDocument' || activeModal?.type === 'createDocument') {
@@ -52,15 +53,28 @@ const DocumentModals = ({
     try {
       if (selectedDocType === "Wakaalad") {
         const createdDoc = await onCreateWakaalad();
-        // If linking after creation and we have an agent
+        // Optionally create associated Tasdiiq
+        let createdTasdiiq = null;
+        if (createTasdiiqWithWakaalad) {
+          createdTasdiiq = await onCreateTasdiiq();
+        }
+        // If linking after creation and we have an agent, link the wakaalad by default
         if (activeModal?.agent && createdDoc) {
-          await onLinkDocument(selectedDocType, createdDoc._id);
+          const agent = activeModal.agent;
+          const side = activeModal.side || 'dhinac1';
+          await onLinkDocument && onLinkDocument(agent, selectedDocType, createdDoc._id, side);
+          // If we also created a tasdiiq and wish to link it, link it as well
+          if (createdTasdiiq) {
+            await onLinkDocument && onLinkDocument(agent, 'Tasdiiq', createdTasdiiq._id, side);
+          }
         }
       } else {
         const createdDoc = await onCreateTasdiiq();
         // If linking after creation and we have an agent
         if (activeModal?.agent && createdDoc) {
-          await onLinkDocument(selectedDocType, createdDoc._id);
+          const agent = activeModal.agent;
+          const side = activeModal.side || 'dhinac1';
+          await onLinkDocument && onLinkDocument(agent, selectedDocType, createdDoc._id, side);
         }
       }
       setActiveModal(null);
@@ -156,7 +170,9 @@ const DocumentModals = ({
   };
 
   const handleLinkDocument = (docId) => {
-    onLinkDocument(selectedDocType, docId);
+    const agent = activeModal?.agent;
+    const side = activeModal?.side || 'dhinac1';
+    onLinkDocument && onLinkDocument(agent, selectedDocType, docId, side);
     setActiveModal(null);
   };
 
@@ -207,6 +223,16 @@ const DocumentModals = ({
 
           {selectedDocType === "Wakaalad" ? (
             <div className="space-y-4">
+              <div className="flex items-center gap-3">
+                <input
+                  id="createTasdiiqWithWakaalad"
+                  type="checkbox"
+                  checked={createTasdiiqWithWakaalad}
+                  onChange={(e) => setCreateTasdiiqWithWakaalad(e.target.checked)}
+                  disabled={isSubmitting}
+                />
+                <label htmlFor="createTasdiiqWithWakaalad" className="text-sm">Also create a Tasdiiq (optional)</label>
+              </div>
               <div>
                 <label className="block text-sm font-medium mb-1">Nooca Wakaaladda</label>
                 <select
@@ -224,6 +250,36 @@ const DocumentModals = ({
                   <option value="DhaxalKoob">DhaxalKoob</option>
                 </select>
               </div>
+              {createTasdiiqWithWakaalad && (
+                <div className="border p-3 rounded bg-gray-50">
+                  <h5 className="font-medium mb-2">Tasdiiq (optional)</h5>
+                  <div className="grid grid-cols-3 gap-3">
+                    <input
+                      type="text"
+                      value={newTasdiiq.refNo}
+                      onChange={(e) => setNewTasdiiq({...newTasdiiq, refNo: e.target.value})}
+                      className="border border-gray-300 p-2 rounded"
+                      placeholder="Tixraac"
+                      disabled={isSubmitting}
+                    />
+                    <input
+                      type="date"
+                      value={newTasdiiq.date}
+                      onChange={(e) => setNewTasdiiq({...newTasdiiq, date: e.target.value})}
+                      className="border border-gray-300 p-2 rounded"
+                      disabled={isSubmitting}
+                    />
+                    <input
+                      type="text"
+                      value={newTasdiiq.kasooBaxday}
+                      onChange={(e) => setNewTasdiiq({...newTasdiiq, kasooBaxday: e.target.value})}
+                      className="border border-gray-300 p-2 rounded"
+                      placeholder="Kasoo Baxday"
+                      disabled={isSubmitting}
+                    />
+                  </div>
+                </div>
+              )}
 
               <div>
                 <label className="block text-sm font-medium mb-1">Lambarka Tixraac</label>
@@ -363,11 +419,15 @@ const DocumentModals = ({
             ) : (
               <button
                 onClick={handleCreateDocument}
-                disabled={isSubmitting || 
-                  (selectedDocType === "Wakaalad" && 
-                   (!newWakaalad.refNo || !newWakaalad.date || !newWakaalad.kasooBaxday)) ||
-                  (selectedDocType === "Tasdiiq" && 
-                   (!newTasdiiq.refNo || !newTasdiiq.date || !newTasdiiq.kasooBaxday))
+                disabled={
+                  isSubmitting || (
+                    selectedDocType === "Wakaalad" && (
+                      !newWakaalad.refNo || !newWakaalad.date || !newWakaalad.kasooBaxday ||
+                      (createTasdiiqWithWakaalad && (!newTasdiiq.refNo || !newTasdiiq.date || !newTasdiiq.kasooBaxday))
+                    )
+                  ) || (
+                    selectedDocType === "Tasdiiq" && (!newTasdiiq.refNo || !newTasdiiq.date || !newTasdiiq.kasooBaxday)
+                  )
                 }
                 className="bg-green-600 text-white px-5 py-2 rounded hover:bg-green-700 transition disabled:opacity-50"
               >

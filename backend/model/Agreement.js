@@ -75,8 +75,16 @@ serviceType: {
         },
         docRef: {
           type: mongoose.Schema.Types.ObjectId,
-          refPath: "dhinac1.agentDocument.docType", // docRef = document wakaalad/tasdiiq
+          refPath: "dhinac1.agentDocument.docType",
         },
+      },
+      // Per-agent documents mapping: agentId -> { wakaalad: ObjectId, tasdiiq: ObjectId }
+      agentDocuments: {
+        type: Map,
+        of: new mongoose.Schema({
+          wakaalad: { type: mongoose.Schema.Types.ObjectId, ref: 'Wakaalad' },
+          tasdiiq: { type: mongoose.Schema.Types.ObjectId, ref: 'Tasdiiq' }
+        }, { _id: false })
       },
     },
 
@@ -100,6 +108,13 @@ serviceType: {
           ref: "Person",
         },
       ],
+      agentDocuments: {
+        type: Map,
+        of: new mongoose.Schema({
+          wakaalad: { type: mongoose.Schema.Types.ObjectId, ref: 'Wakaalad' },
+          tasdiiq: { type: mongoose.Schema.Types.ObjectId, ref: 'Tasdiiq' }
+        }, { _id: false })
+      },
     },
 
     witnesses: [

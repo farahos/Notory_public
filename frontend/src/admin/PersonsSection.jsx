@@ -15,9 +15,9 @@ const PersonsSection = ({
   setActiveModal,
   fetchData,
   showDocumentOptions = false,
-  agentDocument,
+  agentDocuments,
   onRemoveDocument,
-  onLinkDocument
+  onOpenLinkModal
 }) => {
   const [newPerson, setNewPerson] = useState({
     fullName: "",
@@ -47,15 +47,18 @@ const PersonsSection = ({
         );
 
         let finalPersonId; // Ka badal magaca variable-ka si aadan ugu dhawaaqin parameter-ka
+        let finalPersonObj = null;
         if (existingPerson) {
           // Use existing person
           finalPersonId = existingPerson._id;
+          finalPersonObj = existingPerson;
           console.log("Using existing person ID:", finalPersonId);
           toast.success("Existing person added to agreement");
         } else {
           // Create new person
           const res = await axios.post("/api/persons", data);
           finalPersonId = res.data._id;
+          finalPersonObj = res.data;
           console.log("Created new person ID:", finalPersonId);
           toast.success("New person created and added to agreement");
           setAllPersons(prev => [...prev, res.data]);
@@ -86,6 +89,15 @@ const PersonsSection = ({
         setTimeout(() => {
           fetchData();
         }, 100);
+
+        // If this is an agent, require linking a Wakaalad immediately (Tasdiiq optional)
+        try {
+          if (role === 'agents' && onOpenLinkModal) {
+            onOpenLinkModal(finalPersonObj || finalPersonId, 'Wakaalad', side);
+          }
+        } catch (err) {
+          console.error('Error opening link modal after add:', err);
+        }
       }
 
       if (operation === "update") {
@@ -173,15 +185,15 @@ const PersonsSection = ({
               side={side}
               role={role}
               showDocumentOptions={showDocumentOptions}
-              agentDocument={agentDocument}
+                agentDocument={agentDocuments?.[person._id]}
               onEdit={() => setLocalActiveModal({type: 'updatePerson', person})}
               onDelete={() => {
                 if (window.confirm(`Delete ${person.fullName}?`)) {
                   handlePerson("delete", person._id);
                 }
               }}
-              onRemoveDocument={onRemoveDocument}
-              onLinkDocument={() => onLinkDocument && onLinkDocument(person)}
+              onRemoveDocument={(docType) => onRemoveDocument && onRemoveDocument(person, docType)}
+                onLinkDocument={(docType) => onOpenLinkModal && onOpenLinkModal(person, docType, side)}
             />
           );
         })

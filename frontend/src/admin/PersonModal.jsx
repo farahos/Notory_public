@@ -74,6 +74,46 @@ const PersonModal = ({
     }
   };
 
+  // sanitizers to avoid rendering event objects accidentally
+  const isEventObject = (v) => v && typeof v === 'object' && ('nativeEvent' in v || '_reactName' in v || ('target' in v && v.target && typeof v.target !== 'object'));
+  const sanitize = (v) => (isEventObject(v) ? '' : v);
+  const safePersonData = {
+    ...personData,
+    fullName: sanitize(personData?.fullName),
+    motherName: sanitize(personData?.motherName),
+    birthPlace: sanitize(personData?.birthPlace),
+    birthYear: sanitize(personData?.birthYear),
+    address: sanitize(personData?.address),
+    nationality: sanitize(personData?.nationality),
+    phone: sanitize(personData?.phone),
+    gender: sanitize(personData?.gender),
+    documentType: sanitize(personData?.documentType),
+    documentNumber: sanitize(personData?.documentNumber),
+  };
+  const safeSelected = selectedExistingPerson ? {
+    ...selectedExistingPerson,
+    fullName: sanitize(selectedExistingPerson.fullName),
+    phone: sanitize(selectedExistingPerson.phone),
+    motherName: sanitize(selectedExistingPerson.motherName),
+    gender: sanitize(selectedExistingPerson.gender),
+    documentType: sanitize(selectedExistingPerson.documentType),
+    documentNumber: sanitize(selectedExistingPerson.documentNumber),
+  } : null;
+
+  // debug: surface any event-like values that would break rendering
+  useEffect(() => {
+    const check = (obj, name) => {
+      if (!obj || typeof obj !== 'object') return [];
+      return Object.keys(obj).filter(k => isEventObject(obj[k])).map(k => `${name}.${k}`);
+    };
+    const issues = [];
+    issues.push(...check(personData, 'personData'));
+    issues.push(...check(selectedExistingPerson || {}, 'selectedExistingPerson'));
+    if (issues.length) {
+      console.error('PersonModal: found event-like fields before render:', issues, { personData, selectedExistingPerson });
+    }
+  }, [personData, selectedExistingPerson]);
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-gray-100 w-full max-w-[600px] rounded-lg overflow-y-auto max-h-[90vh] p-6 grid grid-cols-2 gap-4">
@@ -126,7 +166,7 @@ const PersonModal = ({
             
             {searchResults.length > 0 && (
               <div className="border border-gray-300 rounded bg-white max-h-40 overflow-y-auto">
-                {searchResults.map((person) => (
+                    {searchResults.map((person) => (
                   <div
                     key={person._id}
                     className="p-3 border-b hover:bg-gray-50 cursor-pointer"
@@ -142,16 +182,16 @@ const PersonModal = ({
               </div>
             )}
             
-            {selectedExistingPerson && (
+            {safeSelected && (
               <div className="p-4 bg-blue-50 rounded-lg">
                 <h4 className="font-bold text-blue-700 mb-2">Person La Doortay:</h4>
                 <div className="grid grid-cols-2 gap-2 text-sm">
-                  <div><span className="font-medium">Magaca:</span> {selectedExistingPerson.fullName}</div>
-                  <div><span className="font-medium">Telefoon:</span> {selectedExistingPerson.phone || "N/A"}</div>
-                  <div><span className="font-medium">Hooyada:</span> {selectedExistingPerson.motherName || "N/A"}</div>
-                  <div><span className="font-medium">Jinsiga:</span> {selectedExistingPerson.gender || "N/A"}</div>
-                  <div><span className="font-medium">Nooca Warqadda:</span> {selectedExistingPerson.documentType || "N/A"}</div>
-                  <div><span className="font-medium">Nambarka:</span> {selectedExistingPerson.documentNumber || "N/A"}</div>
+                  <div><span className="font-medium">Magaca:</span> {safeSelected.fullName}</div>
+                  <div><span className="font-medium">Telefoon:</span> {safeSelected.phone || "N/A"}</div>
+                  <div><span className="font-medium">Hooyada:</span> {safeSelected.motherName || "N/A"}</div>
+                  <div><span className="font-medium">Jinsiga:</span> {safeSelected.gender || "N/A"}</div>
+                  <div><span className="font-medium">Nooca Warqadda:</span> {safeSelected.documentType || "N/A"}</div>
+                  <div><span className="font-medium">Nambarka:</span> {safeSelected.documentNumber || "N/A"}</div>
                 </div>
               </div>
             )}
@@ -161,7 +201,7 @@ const PersonModal = ({
         {(isExistingMode === "cusub" || mode === "update") && (
           <>
             <input
-              value={personData.fullName}
+              value={safePersonData.fullName}
               onChange={(e) => setPersonData({ ...personData, fullName: e.target.value })}
               placeholder="Full Name"
               className="border border-gray-300 p-3 rounded w-full"
@@ -231,7 +271,7 @@ const PersonModal = ({
               <option value="Sugnan">Sugnan</option>
             </select>
             <input
-              value={personData.documentNumber}
+              value={safePersonData.documentNumber}
               onChange={(e) => setPersonData({ ...personData, documentNumber: e.target.value })}
               placeholder="Document Number"
               className="border border-gray-300 p-3 rounded w-full col-span-2"

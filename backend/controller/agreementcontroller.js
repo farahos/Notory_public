@@ -1,5 +1,7 @@
 import Agreement from "../model/Agreement.js";
 import mongoose from "mongoose";
+import Wakaalad from "../model/Wakaalad.js";
+import Tasdiiq from "../model/Tasdiiq.js";
 
 /* ===============================
    HELPER: GENERATE REF NO
@@ -34,21 +36,36 @@ export const getAgreementById = async (req, res) => {
       .populate("dhinac2.guarantors")
       .populate("createdBy", "username");
 
-    // Handle agentDocument populate separately
-    if (agreement && agreement.dhinac1?.agentDocument?.docRef) {
-      const docType = agreement.dhinac1.agentDocument.docType;
-      
-      if (docType === "Wakaalad") {
-        await agreement.populate({
-          path: "dhinac1.agentDocument.docRef",
-          model: "Wakaalad"
-        });
-      } else if (docType === "Tasdiiq") {
-        await agreement.populate({
-          path: "dhinac1.agentDocument.docRef",
-          model: "Tasdiiq"
-        });
-      }
+    // Populate per-agent documents (agentDocuments map)
+    if (agreement) {
+      const populateAgentDocs = async (side) => {
+        const map = agreement[side]?.agentDocuments;
+        if (!map) return;
+        // convert Map to plain object
+        const entries = map instanceof Map ? Object.fromEntries(map) : map;
+        for (const [agentId, docs] of Object.entries(entries)) {
+          if (docs?.wakaalad) {
+            try {
+              const waka = await Wakaalad.findById(docs.wakaalad);
+              entries[agentId].wakaalad = waka || docs.wakaalad;
+            } catch (e) {
+              console.error('Failed to populate wakaalad for agent', agentId, e);
+            }
+          }
+          if (docs?.tasdiiq) {
+            try {
+              const tas = await Tasdiiq.findById(docs.tasdiiq);
+              entries[agentId].tasdiiq = tas || docs.tasdiiq;
+            } catch (e) {
+              console.error('Failed to populate tasdiiq for agent', agentId, e);
+            }
+          }
+        }
+        agreement[side].agentDocuments = entries;
+      };
+
+      await populateAgentDocs('dhinac1');
+      await populateAgentDocs('dhinac2');
     }
 
     if (!agreement) {
@@ -75,23 +92,35 @@ export const getAgreements = async (req, res) => {
       .populate("dhinac2.guarantors")
       .populate("createdBy", "username");
 
-    // Handle agentDocument populate for each agreement
+    // Populate per-agent documents for each agreement
     for (let agreement of agreements) {
-      if (agreement.dhinac1?.agentDocument?.docRef) {
-        const docType = agreement.dhinac1.agentDocument.docType;
-        
-        if (docType === "Wakaalad") {
-          await agreement.populate({
-            path: "dhinac1.agentDocument.docRef",
-            model: "Wakaalad"
-          });
-        } else if (docType === "Tasdiiq") {
-          await agreement.populate({
-            path: "dhinac1.agentDocument.docRef",
-            model: "Tasdiiq"
-          });
+      const populateAgentDocs = async (side) => {
+        const map = agreement[side]?.agentDocuments;
+        if (!map) return;
+        const entries = map instanceof Map ? Object.fromEntries(map) : map;
+        for (const [agentId, docs] of Object.entries(entries)) {
+          if (docs?.wakaalad) {
+            try {
+              const waka = await Wakaalad.findById(docs.wakaalad);
+              entries[agentId].wakaalad = waka || docs.wakaalad;
+            } catch (e) {
+              console.error('Failed to populate wakaalad for agent', agentId, e);
+            }
+          }
+          if (docs?.tasdiiq) {
+            try {
+              const tas = await Tasdiiq.findById(docs.tasdiiq);
+              entries[agentId].tasdiiq = tas || docs.tasdiiq;
+            } catch (e) {
+              console.error('Failed to populate tasdiiq for agent', agentId, e);
+            }
+          }
         }
-      }
+        agreement[side].agentDocuments = entries;
+      };
+
+      await populateAgentDocs('dhinac1');
+      await populateAgentDocs('dhinac2');
     }
 
     res.json(agreements);
@@ -121,21 +150,35 @@ export const updateAgreement = async (req, res) => {
       return res.status(404).json({ message: "Agreement not found" });
     }
 
-    // Handle agentDocument populate separately
-    if (agreement.dhinac1?.agentDocument?.docRef) {
-      const docType = agreement.dhinac1.agentDocument.docType;
-      
-      if (docType === "Wakaalad") {
-        await agreement.populate({
-          path: "dhinac1.agentDocument.docRef",
-          model: "Wakaalad"
-        });
-      } else if (docType === "Tasdiiq") {
-        await agreement.populate({
-          path: "dhinac1.agentDocument.docRef",
-          model: "Tasdiiq"
-        });
-      }
+    // Populate per-agent documents (agentDocuments map)
+    if (agreement) {
+      const populateAgentDocs = async (side) => {
+        const map = agreement[side]?.agentDocuments;
+        if (!map) return;
+        const entries = map instanceof Map ? Object.fromEntries(map) : map;
+        for (const [agentId, docs] of Object.entries(entries)) {
+          if (docs?.wakaalad) {
+            try {
+              const waka = await Wakaalad.findById(docs.wakaalad);
+              entries[agentId].wakaalad = waka || docs.wakaalad;
+            } catch (e) {
+              console.error('Failed to populate wakaalad for agent', agentId, e);
+            }
+          }
+          if (docs?.tasdiiq) {
+            try {
+              const tas = await Tasdiiq.findById(docs.tasdiiq);
+              entries[agentId].tasdiiq = tas || docs.tasdiiq;
+            } catch (e) {
+              console.error('Failed to populate tasdiiq for agent', agentId, e);
+            }
+          }
+        }
+        agreement[side].agentDocuments = entries;
+      };
+
+      await populateAgentDocs('dhinac1');
+      await populateAgentDocs('dhinac2');
     }
 
     res.json(agreement);
@@ -166,6 +209,37 @@ export const createAgreement = async (req, res) => {
       .populate("dhinac2.agents")
       .populate("dhinac2.guarantors")
       .populate("createdBy", "username");
+
+    // populate any agentDocuments on the created agreement
+    if (populatedAgreement) {
+      const populateAgentDocs = async (side) => {
+        const map = populatedAgreement[side]?.agentDocuments;
+        if (!map) return;
+        const entries = map instanceof Map ? Object.fromEntries(map) : map;
+        for (const [agentId, docs] of Object.entries(entries)) {
+          if (docs?.wakaalad) {
+            try {
+              const waka = await Wakaalad.findById(docs.wakaalad);
+              entries[agentId].wakaalad = waka || docs.wakaalad;
+            } catch (e) {
+              console.error('Failed to populate wakaalad for agent', agentId, e);
+            }
+          }
+          if (docs?.tasdiiq) {
+            try {
+              const tas = await Tasdiiq.findById(docs.tasdiiq);
+              entries[agentId].tasdiiq = tas || docs.tasdiiq;
+            } catch (e) {
+              console.error('Failed to populate tasdiiq for agent', agentId, e);
+            }
+          }
+        }
+        populatedAgreement[side].agentDocuments = entries;
+      };
+
+      await populateAgentDocs('dhinac1');
+      await populateAgentDocs('dhinac2');
+    }
 
     res.status(201).json(populatedAgreement);
   } catch (error) {
@@ -220,22 +294,34 @@ export const addPersonToAgreement = async (req, res) => {
       return res.status(404).json({ message: "Agreement not found" });
     }
 
-    // Handle agentDocument populate separately
-    if (agreement.dhinac1?.agentDocument?.docRef) {
-      const docType = agreement.dhinac1.agentDocument.docType;
-      
-      if (docType === "Wakaalad") {
-        await agreement.populate({
-          path: "dhinac1.agentDocument.docRef",
-          model: "Wakaalad"
-        });
-      } else if (docType === "Tasdiiq") {
-        await agreement.populate({
-          path: "dhinac1.agentDocument.docRef",
-          model: "Tasdiiq"
-        });
+    // Populate any per-agent agentDocuments map entries
+    const populateAgentDocs = async (side) => {
+      const map = agreement[side]?.agentDocuments;
+      if (!map) return;
+      const entries = map instanceof Map ? Object.fromEntries(map) : map;
+      for (const [agentId, docs] of Object.entries(entries)) {
+        if (docs?.wakaalad) {
+          try {
+            const waka = await Wakaalad.findById(docs.wakaalad);
+            entries[agentId].wakaalad = waka || docs.wakaalad;
+          } catch (e) {
+            console.error('Failed to populate wakaalad for agent', agentId, e);
+          }
+        }
+        if (docs?.tasdiiq) {
+          try {
+            const tas = await Tasdiiq.findById(docs.tasdiiq);
+            entries[agentId].tasdiiq = tas || docs.tasdiiq;
+          } catch (e) {
+            console.error('Failed to populate tasdiiq for agent', agentId, e);
+          }
+        }
       }
-    }
+      agreement[side].agentDocuments = entries;
+    };
+
+    await populateAgentDocs('dhinac1');
+    await populateAgentDocs('dhinac2');
 
     res.json(agreement);
   } catch (error) {

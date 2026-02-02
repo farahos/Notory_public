@@ -16,7 +16,6 @@ const emptyForm = {
 
 const Persons = () => {
   const [persons, setPersons] = useState([]);
-
   // form & modal states
   const [form, setForm] = useState(emptyForm);
   const [showAddModal, setShowAddModal] = useState(false);
