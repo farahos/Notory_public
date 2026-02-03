@@ -11,6 +11,9 @@ const Agreement = () => {
     Wareejin: ["Motor", "Car", "Land", "Share"],
     Wakaalad: ["Wakaalad Guud", "Wakaalad Gaar"],
     Daamaanad : ["Daaminul maal", "Shaqaaleysiin"],
+    Cedeyn : ["Cadeyn Lacageed", "Cadeyn"],
+    Rahan : ["Xayiraad Saami", "Rahmaad"],
+    Heshiishyo  : ["Aas aasid shirkad ", "Kiro"],
   };
 
   const [form, setForm] = useState({
@@ -337,6 +340,7 @@ const Agreement = () => {
                 <option value="Wareejin">Wareejin</option>
                 <option value="Wakaalad">Wakaalad</option>
                 <option value="Daamaanad">Daamaanad</option>
+                
               </select>
             </div>
 
