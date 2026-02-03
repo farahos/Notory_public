@@ -1070,14 +1070,14 @@ const PersonsWitnesses = ({ agreement, fetchData }) => {
       />
 
       {/* Create Document Button */}
-      <div className="flex justify-end">
+      {/* <div className="flex justify-end">
         <button
           onClick={() => setActiveModal({type: 'createDocument'})}
           className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition"
         >
           + Create New Document
         </button>
-      </div>
+      </div> */}
 
       {/* Document Modals */}
       <DocumentModals

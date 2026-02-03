@@ -83,7 +83,7 @@ const ServiceDetails = ({ agreement, serviceData, setServiceData, fetchData }) =
         ];
       case "Share":
         return [
-          { key: "companyName", label: "Company Name", type: "text" },
+          { key: "companyName", label: "Company Name", type: "select" , options: ["Hormuud", "Beco"] },
           { key: "accountNumber", label: "Account Number", type: "text" },
           { key: "shareDate", label: "Share Date", type: "date" }
         ];
@@ -105,10 +105,10 @@ const ServiceDetails = ({ agreement, serviceData, setServiceData, fetchData }) =
             <div><span className="font-medium">Midab:</span> {service.color || "N/A"}</div>
             <div><span className="font-medium">Cylinder:</span> {service.cylinder || "N/A"}</div>
             <div><span className="font-medium">Taargo:</span> {service.plateNo || "N/A"}</div>
-            <div><span className="font-medium">Plate Issue Date:</span> {service.plateIssueDate || "N/A"}</div>
+            <div><span className="font-medium">Plate Issue Date:</span> {service.plateIssueDate?.split("T")[0] || "N/A"}</div>
             <div><span className="font-medium">Ownership Type:</span> {service.ownershipType || "N/A"}</div>
             <div><span className="font-medium">Ownership Book No:</span> {service.ownershipBookNo || "N/A"}</div>
-            <div><span className="font-medium">Ownership Issue Date:</span> {service.ownershipIssueDate || "N/A"}</div>
+            <div><span className="font-medium">Ownership Issue Date:</span> {service.ownershipIssueDate?.split("T")[0] || "N/A"}</div>
           </div>
         );
       case "Car":
@@ -121,7 +121,7 @@ const ServiceDetails = ({ agreement, serviceData, setServiceData, fetchData }) =
             <div><span className="font-medium">Model Year:</span> {service.modelYear || "N/A"}</div>
             <div><span className="font-medium">Midab:</span> {service.color || "N/A"}</div>
             <div><span className="font-medium">Plate No:</span> {service.plateNo || "N/A"}</div>
-            <div><span className="font-medium">Plate Issue Date:</span> {service.plateIssueDate || "N/A"}</div>
+            <div><span className="font-medium">Plate Issue Date:</span> {service.plateIssueDate?.split("T")[0] || "N/A"}</div>
           </div>
         );
       case "Land":
@@ -138,10 +138,10 @@ const ServiceDetails = ({ agreement, serviceData, setServiceData, fetchData }) =
         );
       case "Share":
         return (
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-3 gap-4">
             <div><span className="font-medium">Shirkadda:</span> {service.companyName || "N/A"}</div>
-            <div><span className="font-medium">Akauntiga:</span> {service.accountNumber || "N/A"}</div>
-            <div><span className="font-medium">Taariikhda Share-ka:</span> {service.shareDate || "N/A"}</div>
+            <div><span className="font-medium">Acount:</span> {service.accountNumber || "N/A"}</div>
+            <div><span className="font-medium">Date:</span> {service.shareDate?.split("T")[0] || "N/A"}</div>
           </div>
         );
       default:

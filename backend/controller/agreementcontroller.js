@@ -34,6 +34,8 @@ export const getAgreementById = async (req, res) => {
       .populate("dhinac2.buyers")
       .populate("dhinac2.agents")
       .populate("dhinac2.guarantors")
+        .populate("serviceRef")   // <-- Halkan ku dar
+
       .populate("createdBy", "username");
 
     // Populate per-agent documents (agentDocuments map)
@@ -90,6 +92,10 @@ export const getAgreements = async (req, res) => {
       .populate("dhinac2.buyers")
       .populate("dhinac2.agents")
       .populate("dhinac2.guarantors")
+      
+      
+  .populate("serviceRef")   // <-- Halkan ku dar
+
       .populate("createdBy", "username");
 
     // Populate per-agent documents for each agreement

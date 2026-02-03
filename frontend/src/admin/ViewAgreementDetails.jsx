@@ -12,17 +12,15 @@ const ViewAgreementLayout = () => {
   const [agreement, setAgreement] = useState(null);
   const [serviceData, setServiceData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [activePage, setActivePage] = useState("info");
 
   // ================= FETCH DATA =================
   const fetchData = async () => {
     try {
       setIsLoading(true);
-      // Fetch agreement with populated data
+
       const res = await axios.get(`/api/agreements/${id}`);
       setAgreement(res.data);
 
-      // If serviceRef exists, fetch service data
       if (res.data?.serviceRef) {
         const serviceId =
           typeof res.data.serviceRef === "object"
@@ -82,66 +80,39 @@ const ViewAgreementLayout = () => {
   }
 
   return (
-    <div className="max-w-7xl mx-auto p-4">
+    <div className="max-w-7xl mx-auto p-4 space-y-6">
       {/* Header */}
-      <div className="bg-blue-600 text-white p-4 rounded-lg mb-6">
+      <div className="bg-blue-600 text-white p-4 rounded-lg">
         <div className="flex justify-between items-center">
           <div>
             <h1 className="text-2xl font-bold">Agreement Details</h1>
             <p>REF: {agreement.refNo} | Type: {agreement.serviceType}</p>
-            <p className="text-sm mt-1">Created by: {agreement.createdBy?.username}</p>
+            <p className="text-sm mt-1">
+              Created by: {agreement.createdBy?.username}
+            </p>
           </div>
-          <button onClick={() => navigate("/agreements")} className="bg-white text-blue-600 px-4 py-2 rounded">
+          <button
+            onClick={() => navigate("/agreement")}
+            className="bg-white text-blue-600 px-4 py-2 rounded"
+          >
             Back to List
           </button>
         </div>
       </div>
 
-      {/* Navigation Tabs */}
-      <div className="flex border-b mb-6">
-        <button
-          className={`px-6 py-3 font-medium ${activePage === "info" ? "border-b-2 border-blue-600 text-blue-600" : "text-gray-500"}`}
-          onClick={() => setActivePage("info")}
-        >
-          Agreement Info
-        </button>
-        <button
-          className={`px-6 py-3 font-medium ${activePage === "service" ? "border-b-2 border-blue-600 text-blue-600" : "text-gray-500"}`}
-          onClick={() => setActivePage("service")}
-        >
-          Service Details
-        </button>
-        <button
-          className={`px-6 py-3 font-medium ${activePage === "persons" ? "border-b-2 border-blue-600 text-blue-600" : "text-gray-500"}`}
-          onClick={() => setActivePage("persons")}
-        >
-          Persons & Witnesses
-        </button>
-      </div>
+      {/* Agreement Info */}
+      <AgreementInfo agreement={agreement} fetchData={fetchData} />
 
-      {/* Page Content */}
-      {activePage === "info" && (
-        <AgreementInfo 
-          agreement={agreement}
-          fetchData={fetchData}
-        />
-      )}
+      {/* Service Details */}
+      <ServiceDetails
+        agreement={agreement}
+        serviceData={serviceData}
+        setServiceData={setServiceData}
+        fetchData={fetchData}
+      />
 
-      {activePage === "service" && (
-        <ServiceDetails
-          agreement={agreement}
-          serviceData={serviceData}
-          setServiceData={setServiceData}
-          fetchData={fetchData}
-        />
-      )}
-
-      {activePage === "persons" && (
-        <PersonsWitnesses
-          agreement={agreement}
-          fetchData={fetchData}
-        />
-      )}
+      {/* Persons & Witnesses */}
+      <PersonsWitnesses agreement={agreement} fetchData={fetchData} />
     </div>
   );
 };

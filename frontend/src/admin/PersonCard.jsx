@@ -54,15 +54,14 @@ const PersonCard = ({
           >
             Edit
           </button>
-          <button 
-            onClick={() => { 
-              if (window.confirm(`Delete ${person.fullName || 'this person'}?`)) onDelete(); 
-            }} 
-            className="bg-red-600 text-white px-3 py-1.5 rounded text-sm hover:bg-red-700 transition" 
-            title="Delete Person"
-          >
-            Delete
-          </button>
+         <button 
+          onClick={onDelete}
+          className="bg-red-600 text-white px-3 py-1.5 rounded text-sm hover:bg-red-700 transition"
+          title="Delete Person"
+        >
+          Delete
+        </button>
+
         </div>
       </div>
 

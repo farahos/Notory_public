@@ -131,7 +131,28 @@ const PersonsSection = ({
           throw new Error("Person ID is required for delete");
         }
         
-        await axios.delete(`/api/persons/${personId}`);
+        if (operation === "delete") {
+  console.log("Removing person from agreement only:", personId);
+
+  if (!personId) {
+    throw new Error("Person ID is required");
+  }
+
+  // Kaliya ka saar agreement-ka
+  await axios.put(`/api/agreements/${agreement._id}`, {
+    [side]: {
+      ...agreement[side],
+      [role]: (agreement[side]?.[role] || []).filter(
+        (p) => (p._id || p) !== personId
+      ),
+    },
+  });
+
+ toast.success("Person deleted");
+
+  fetchData();
+}
+
 
         await axios.put(`/api/agreements/${agreement._id}`, {
           [side]: {
@@ -140,7 +161,7 @@ const PersonsSection = ({
           },
         });
 
-        toast.success("Person deleted");
+        
         
         // Update allPersons list
         setAllPersons(prev => prev.filter(p => p._id !== personId));

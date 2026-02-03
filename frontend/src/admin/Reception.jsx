@@ -55,11 +55,13 @@ const Agreement = () => {
   }, [form.agreementType]);
 
   useEffect(() => {
-    setForm(prev => ({
-      ...prev,
-      serviceType: "",
-    }));
-  }, [form.service]);
+  const firstType = serviceTypeOptions[form.service][0];
+  setForm(prev => ({
+    ...prev,
+    serviceType: firstType,
+  }));
+}, [form.service]);
+
 
   useEffect(() => {
     if (form.service !== "Wareejin") {

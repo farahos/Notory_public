@@ -4,7 +4,7 @@ import { authenticate, authorizeRoles } from '../middleware/authmiddleware.js';
 
 
 const userRouter = express.Router();
-userRouter.post('/registerUser', authenticate, authorizeRoles("admin"), registerUser);
+userRouter.post('/registerUser',  registerUser);
 userRouter.post('/loginUser', loginUser);
 userRouter.get('/', authenticate, getAllUsers);
 userRouter.get('/:id', authenticate, getSingleUser);
