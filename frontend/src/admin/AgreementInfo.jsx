@@ -30,9 +30,9 @@ const AgreementInfo = ({ agreement, fetchData }) => {
     if (!p) return "";
     return `${p.fullName}, ${p.nationality || ""} ah, ina ${p.motherName || ""},
 ku dhashay ${p.birthPlace || ""}, sannadkii ${p.birthYear || ""},
-deggan ${p.address || ""},
+deggan ${p.address || ""}, Jinsiyada ${p.gender || ""},
 lehna ${p.documentType || ""} No. ${p.documentNumber || ""},
-Tell: ${p.phone || ""}`;
+Tell: ${p.phone || ""} `;
   };
 
   const formatPersonsFull = (persons = []) =>
@@ -42,34 +42,75 @@ Tell: ${p.phone || ""}`;
     agents
       .map((agent, i) => {
         const docs = sideData?.agentDocuments?.[agent._id];
-        const wakaaladRef =
-          docs?.wakaalad?.refNo ||
-          docs?.wakaaladDetails?.refNo ||
-          "Wakaalad la lifaaqay";
+        const wakaladType = docs?.wakaalad?.wakaladType 
+        const refNo =  docs?.wakaalad?.refNo
+        const date =  docs?.wakaalad?.date
+        const kasooBaxday =  docs?.wakaalad?.kasooBaxday
+        const xafiisKuYaal =  docs?.wakaalad?.xafiisKuYaal
+        const saxiix1 =  docs?.wakaalad?.saxiix1
+      const service = agreement.serviceRef || {};
 
         return `${i + 1}. ${formatPersonFull(agent)}
-Wakiil Sharci ah (Wakaalad Ref: ${wakaaladRef})`;
+        haystana ${wakaladType} lambarkeedu yahay ${refNo}
+        Tr. ${date?.split("T")[0]}, kana soo baxday Xafiiska Nootaayaha
+         iyo Latalinta Sharciga ah ee ${kasooBaxday}, uuna saxiixay Dr.
+          ${saxiix1}, kana wakiil ah iska 
+          iibiyaha ${agreement.serviceType} ${agreement.dhinac1?.sellers ?.map((b) => b.fullName).join(", ")},
+          kana caafimaad qaba dhanka maskaxda iyo jirkaba, cid igu qasabtayna aysan jirin, waxaan ka qirayaa 
+          markhaatiyaasha iyo nootaayaha hortooda, in aan ka iibiyey kuna wareejiyey ${agreement.dhinac2?.buyers?.map((b) => b.fullName).join(", ")},
+           saami ka mid ah saamiyada uu ku leeyahay ${agreement.dhinac1?.sellers ?.map((b) => b.fullName).join(", ")},
+           Shirkada  ${service.companyName || "N/A"}
+           oo ah sida kor ku xusan, kuna cad Activity Report-ga, ${service.shareDate || "N/A"} Sidaa darteed,
+            laga bilaabo 01/01/2026 faa'iidada iyo manfaca saamigaan waxa ay si sharci ah ugu wareegtay 
+           ${agreement.dhinac2?.buyers?.map((b) => b.fullName).join(", ")},
+
+
+        `;
       })
       .join("\n\n");
+
+      const formatBuyerAcceptance = (buyers = []) =>
+  buyers
+    .map(
+      (b) => `
+
+Anigoo ah, ${b.fullName}, ${b.nationality || ""} ah, ina ${b.motherName || ""},
+ku dhashay ${b.birthPlace || ""}, sannadkii ${b.birthYear || ""},
+deggan ${b.address || ""},
+lehna ${b.documentType || ""} No. ${b.documentNumber || ""},
+ku lifaaqan warqaddaan,
+Tell: ${b.phone || ""},
+ahna beec u aqbalaha, kana caafimaad qaba maskaxda iyo jirkaba,
+cid igu qasabtayna aysan jirin,
+waxaan ku qancay iibkaan, una aqbalay
+${(agreement.dhinac2?.buyers || []).map((s) => s.fullName).join(", ")}.
+`
+    )
+    .join("\n\n");
+
+    
+ // ================= GEnder  =================
+    const getGenderText = (gender, maleText, femaleText) => {
+  if (!gender) return maleText; // default
+  return gender.toLowerCase() === "female" ? femaleText : maleText;
+};
+
 
   // ================= SERVICE DETAILS =================
  const formatServiceDetails = () => {
   const service = agreement.serviceRef;
   if (!service) return "— Adeeg lama lifaaqin heshiiskan —";
-    const unaDhiganto = agreement.sellingPrice / 10
+    const TIRADASAAMIGA = agreement.sellingPrice * 10
 
   switch (agreement.serviceType) {
     case "Share":
       return `
-Sifada Saamiga
-Shirkadda: ${service.companyName || "N/A"}
-Acount ka: ${service.accountNumber || "N/A"}
-Tirada Saamiga: ${agreement.sellingPrice || "N/A"} ${numberToSomaliWords(agreement.sellingPrice || 0)} doolar
+SIFADA SAAMIGA LA IIBINAAYO:
+ACCOUNT NO:  ${service.accountNumber || "N/A"}
 
-Una Dhiganto: ${unaDhiganto} ${numberToSomaliWords(unaDhiganto)} doolar
+TIRADA SAAMIGA:  ${TIRADASAAMIGA || "N/A"} ${numberToSomaliWords(TIRADASAAMIGA || 0)} saami
 
-
-Taariikhda Share-ka: ${service.shareDate || "N/A"}
+UNA DHIGANTA: ${agreement.sellingPrice} ${numberToSomaliWords(agreement.sellingPrice)} Doolarka Mareykanka ah
 `;
 
     case "Car":
@@ -116,10 +157,22 @@ Taariikhda Deed: ${service.deedDate || "N/A"}
 
   // ================= AGREEMENT TEXT =================
   const generateAgreementText = () => {
+    const service = agreement.serviceRef || {};
+
     const sellers = agreement.dhinac1?.sellers || [];
     const sellerAgents = agreement.dhinac1?.agents || [];
     const buyers = agreement.dhinac2?.buyers || [];
     const buyerAgents = agreement.dhinac2?.agents || [];
+    const sellerGender = sellers?.[0]?.gender;
+    const buyerGender  = buyers?.[0]?.gender;
+
+    const isMultiSeller = sellers.length > 1;
+    const isMultiBuyer  = buyers.length > 1;
+        const roleText = (gender, isMultiple, maleSingle, femaleSingle, plural) => {
+      if (isMultiple) return plural;
+      return gender === "Female" ? femaleSingle : maleSingle;
+    };
+
 
     const hasSellerAgent = sellerAgents.length > 0;
     const hasBuyerAgent = buyerAgents.length > 0;
@@ -129,46 +182,106 @@ REF ${agreement.refNo}                  ${agreement.agreementDate?.split("T")[0]
 
 UJEEDDO: HESHIIS KALA GADASHO ${agreement.serviceType}
 
-Maanta oo ay taariikhdu tahay ${agreement.agreementDate?.split("T")[0]}, waxaa heshiis ku wada galay:
 
 
-
-ISKA IIBIYAHA:
-${formatPersonsFull(sellers)}
-
-${hasSellerAgent ? `\nWAKIILKA ISKA IIBIYAHA:\n${formatAgentsFull(sellerAgents, agreement.dhinac1)}\n` : ""}
+Maanta oo ay taariikhdu tahay  ${agreement.agreementDate?.split("T")[0]}, aniga oo ah Dr. Maxamed Cabdiraxmaan Sheekh Maxamed Nootaayo Boqole, 
+xafiiskeyga ku yaal Degmada Howl-wadaag kasoo horjeedka xawaalada Taaj una dhow xarunta Hormuud ee Muqdisho Soomaaliya waxa uu wareejiyey ${agreement.serviceType}:-
 
 
-IIBSADAHA:
-${formatPersonsFull(buyers)}
-
-${hasBuyerAgent ? `\nWAKIILKA IIBSADAHA:\n${formatAgentsFull(buyerAgents, agreement.dhinac2)}\n` : ""}
-
-
-FAAHFAAHINTA ADEEGGA
 ${formatServiceDetails()}
 
+${roleText(
+  sellerGender,
+  isMultiSeller,
+  "ISKA IIBIYAHA",
+  "ISKA IIBISADA",
+  "ISKA IIBIYAASHA"
+)}: ${agreement.serviceType}
+
+${formatPersonsFull(sellers)}
+
+
+${roleText(
+  buyerGender,
+  isMultiBuyer,
+  "IIBSADAHA",
+  "IIBSATADA",
+  "IIBSADAYAASHA"
+)}: ${agreement.serviceType}
+
+${formatPersonsFull(buyers)}
 
 
 
-Qiimaha lagu kala iibsaday waa ${agreement.sellingPrice || 0}
 
+${hasSellerAgent ? `\nWAKIILKA  ${roleText(
+  sellerGender,
+  isMultiSeller,
+  "ISKA IIBIYAHA",
+  "ISKA IIBISADA",
+  "ISKA IIBIYAASHA"
+)}
+: ${agreement.serviceType}\n${formatAgentsFull(sellerAgents, agreement.dhinac1)}\n` : 
+`
 
-Milkiyadda waxay si sharci ah ugu wareegtay iibsadaha.
+Anigoo ah ${agreement.dhinac1?.sellers ?.map((b) => b.fullName).join(", ")}, kana caafimaad qaba dhanka maskaxda iyo jirkaba, cid igu qasabtayna aysan jirin,
+ waxaan ka qirayaa markhaatiyaasha iyo nootaayaha hortooda, in aan ka iibiyey kuna wareejiyey ${agreement.dhinac2?.buyers ?.map((b) => b.fullName).join(", ")},
+  saami ka mid ah saamiyada aan ku leeyahay  shirkadda ${service.companyName || "N/A"} oo ah sida kor
+  ku xusan, kuna cad Activity Report-ga, Tr${service.shareDate || "N/A"}
+  Sidaa darteed, laga bilaabo 01/01/2026 faa'iidada iyo manfaca saamigaan waxa ay si sharci ah ugu wareegtay ${agreement.dhinac2?.buyers ?.map((b) => b.fullName).join(", ")},`
+}
+${hasBuyerAgent ? `\n BEEC U AQBALAHA:  ${roleText(
+  buyerGender,
+  isMultiBuyer,
+  "IIBSADAHA",
+  "IIBSATADA",
+  "IIBSADAYAASHA"
+)}
 
-
+: ${agreement.serviceType}\n${formatBuyerAcceptance(buyerAgents, agreement.dhinac2)}\n` : `
+Anigoo ah, ${agreement.dhinac2?.buyers ?.map((b) => b.fullName).join(", ")},ahna iibsadaha saamiga, 
+kana caafimaad qaba maskaxda iyo jirkaba, cid i qasabtayna aysan jirin waxaan cadeynayaa in aan ku qancay iibkaan, aqbalayna.
+Wixii aan ku xusneyn halkaan waxaa loo raacayaa sida uu qabo sharciga islaamka iyo qaanuunka Dalka
+`}
 SAXIIXYADA
-
 ${
   hasSellerAgent
-    ? `SAXIIXA WAKIILKA ISKA IIBIYAHA:\n${sellerAgents.map((a) => a.fullName).join("\n")}`
-    : `SAXIIXA ISKA IIBIYAHA:\n${sellers.map((s) => s.fullName).join("\n")}`
+    ? `SAXIIXA WAKIIL KA ${roleText(
+        sellerGender,
+        isMultiSeller,
+        "ISKA IIBIYAHA",
+        "ISKA IIBISADA",
+        "ISKA IIBIYAASHA"
+      )}:
+${sellerAgents.map((a) => a.fullName).join("\n")}`
+    : `SAXIIXA ${roleText(
+        sellerGender,
+        isMultiSeller,
+        "ISKA IIBIYAHA",
+        "ISKA IIBISADA",
+        "ISKA IIBIYAASHA"
+      )}:
+${sellers.map((s) => s.fullName).join("\n")}`
 }
 
 ${
   hasBuyerAgent
-    ? `\nSAXIIXA WAKIILKA IIBSADAHA:\n${buyerAgents.map((a) => a.fullName).join("\n")}`
-    : `\nSAXIIXA IIBSADAHA:\n${buyers.map((b) => b.fullName).join("\n")}`
+    ? `\nSAXIIXA BEEC U AQBALAHA ${roleText(
+        buyerGender,
+        isMultiBuyer,
+        "IIBSADAHA",
+        "IIBSATADA",
+        "IIBSADAYAASHA"
+      )}:
+${buyerAgents.map((a) => a.fullName).join("\n")}`
+    : `\nSAXIIXA ${roleText(
+        buyerGender,
+        isMultiBuyer,
+        "IIBSADAHA",
+        "IIBSATADA",
+        "IIBSADAYAASHA"
+      )}:
+${buyers.map((b) => b.fullName).join("\n")}`
 }
 
 ----------------------------------------
@@ -179,7 +292,7 @@ ${agreement.witnesses?.map((w, i) => `${i + 1}. ${w}`).join("\n") || ""}
 SUGITAANKA NOOTAAYADA
 Dr. Maxamed Cabdiraxmaan Sheekh Maxamed
 `;
-  };
+  }
 
   // ================= DOWNLOAD WORD =================
   const downloadWord = async () => {

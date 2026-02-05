@@ -83,7 +83,7 @@ const ServiceDetails = ({ agreement, serviceData, setServiceData, fetchData }) =
         ];
       case "Share":
         return [
-          { key: "companyName", label: "Company Name", type: "select" , options: ["Hormuud", "Beco"] },
+          { key: "companyName", label: "Company Name", type: "select" , options: ["Hormuud Telecom Somalia Inc (HorTel)", "Beco"] },
           { key: "accountNumber", label: "Account Number", type: "text" },
           { key: "shareDate", label: "Share Date", type: "date" }
         ];
