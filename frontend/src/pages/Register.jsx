@@ -188,7 +188,7 @@
 //                            Hadda is diiwaangeli
 //                         </h1>
 //                         <p className="text-gray-600 dark:text-gray-400 mt-2">
-//                             Ku biir suuqa iibka saamiga ee ugu weyn
+//                             Ku biir suuqa iibka Saamiga ee ugu weyn
 //                         </p>
 //                     </div>
 
@@ -571,7 +571,7 @@ export default Register
   
 //   // Forms for adding/editing service
 //   const [serviceFormData, setServiceFormData] = useState({
-//     // Motor fields
+//     // Mooto fields
 //     type: "", chassisNo: "", modelYear: "", color: "", cylinder: "", 
 //     plateNo: "", plateIssueDate: "", ownershipType: "Buug", 
 //     ownershipBookNo: "", ownershipIssueDate: "",
@@ -580,11 +580,11 @@ export default Register
 //     // Land fields
 //     location: "", area: "", buildingNumber: "", landNumber: "", 
 //     deedNumber: "", deedDate: "", titleNo: "",
-//     // Share fields
+//     // Saami fields
     
 //     companyName: "", 
 //     acount: "", 
-//     shareDate: "",
+//     SaamiDate: "",
 //     _id: "" // For edit mode
 //   });
   
@@ -622,10 +622,10 @@ export default Register
 //   try {
 //     let url = "";
 //     switch (agreement.serviceType) {
-//       case "Motor": url = "/api/motors"; break;
+//       case "Mooto": url = "/api/Mootos"; break;
 //       case "Car": url = "/api/cars"; break;
 //       case "Land": url = "/api/lands"; break;
-//       case "Share": url = "/api/shares"; break;
+//       case "Saami": url = "/api/Saamis"; break;
 //       default: return;
 //     }
 
@@ -697,8 +697,8 @@ export default Register
 //       let dataToSend = {};
       
 //       switch(agreement.serviceType) {
-//         case "Motor":
-//           endpoint = isUpdate ? `/api/motors/${serviceFormData._id}` : "/api/motors";
+//         case "Mooto":
+//           endpoint = isUpdate ? `/api/Mootos/${serviceFormData._id}` : "/api/Mootos";
 //           dataToSend = {
 //             type: serviceFormData.type,
 //             chassisNo: serviceFormData.chassisNo,
@@ -737,12 +737,12 @@ export default Register
 //             titleNo: serviceFormData.titleNo,
 //           };
 //           break;
-//         case "Share":
-//           endpoint = isUpdate ? `/api/shares/${serviceFormData._id}` : "/api/shares";
+//         case "Saami":
+//           endpoint = isUpdate ? `/api/Saamis/${serviceFormData._id}` : "/api/Saamis";
 //           dataToSend = {
 //             companyName: serviceFormData.companyName,
 //             acount: serviceFormData.acount, 
-//             shareDate: serviceFormData.shareDate,
+//             SaamiDate: serviceFormData.SaamiDate,
             
 //           };
 //           break;
@@ -778,10 +778,10 @@ export default Register
 //     try {
 //       let endpoint = "";
 //       switch(agreement.serviceType) {
-//         case "Motor": endpoint = `/api/motors/${serviceData?._id}`; break;
+//         case "Mooto": endpoint = `/api/Mootos/${serviceData?._id}`; break;
 //         case "Car": endpoint = `/api/cars/${serviceData?._id}`; break;
 //         case "Land": endpoint = `/api/lands/${serviceData?._id}`; break;
-//         case "Share": endpoint = `/api/shares/${serviceData?._id}`; break;
+//         case "Saami": endpoint = `/api/Saamis/${serviceData?._id}`; break;
 //         default: return;
 //       }
 //       await axios.put(endpoint, serviceData);
@@ -797,10 +797,10 @@ export default Register
 //     try {
 //       let endpoint = "";
 //       switch(agreement.serviceType) {
-//         case "Motor": endpoint = `/api/motors/${serviceId}`; break;
+//         case "Mooto": endpoint = `/api/Mootos/${serviceId}`; break;
 //         case "Car": endpoint = `/api/cars/${serviceId}`; break;
 //         case "Land": endpoint = `/api/lands/${serviceId}`; break;
-//         case "Share": endpoint = `/api/shares/${serviceId}`; break;
+//         case "Saami": endpoint = `/api/Saamis/${serviceId}`; break;
 //         default: return;
 //       }
 //       await axios.delete(endpoint);
@@ -831,7 +831,7 @@ export default Register
     
 //       companyName: "", 
 //       acount: "", 
-//       shareDate: "",
+//       SaamiDate: "",
 //       _id: ""
 //     });
 //   };
@@ -861,7 +861,7 @@ export default Register
 //       companyName: service.companyName || "",
      
 //       acount: service.acount || "",
-//       shareDate: service.shareDate?.split('T')[0] || "",
+//       SaamiDate: service.SaamiDate?.split('T')[0] || "",
 //       _id: service._id
 //     });
 //     setIsEditMode(true);
@@ -898,24 +898,24 @@ export default Register
 //   const renderServiceLabel = (s) => {
 //     if (!s) return "Unknown";
 //     switch(agreement.serviceType) {
-//       case "Motor": return `${s.plateNo || "No Plate"} - ${s.type || "No Type"}`;
+//       case "Mooto": return `${s.plateNo || "No Plate"} - ${s.type || "No Type"}`;
 //       case "Car": return `${s.plateNo || "No Plate"} - ${s.brand || s.type || "No Brand"}`;
 //       case "Land": return `${s.titleNo || s.landNumber || "No Number"} - ${s.location || "No Location"}`;
-//       case "Share": return `${s.companyName || "No Company"} (${s.acount || "No Account"})`;
+//       case "Saami": return `${s.companyName || "No Company"} (${s.acount || "No Account"})`;
 //       default: return "Unknown Service";
 //     }
 //   };
 
 //   const getServiceFields = () => {
 //     switch(agreement.serviceType) {
-//       case "Motor":
+//       case "Mooto":
 //         return ["type", "chassisNo", "modelYear", "color", "cylinder", "plateNo", "plateIssueDate", "ownershipType", "ownershipBookNo", "ownershipIssueDate"];
 //       case "Car":
 //         return ["type", "brand", "chassisNo", "engineNo", "modelYear", "color", "plateNo", "plateIssueDate"];
 //       case "Land":
 //         return ["titleNo", "location", "area", "buildingNumber", "landNumber", "deedNumber", "deedDate"];
-//       case "Share":
-//         return ["companyName", "acount", "shareDate"];
+//       case "Saami":
+//         return ["companyName", "acount", "SaamiDate"];
 //       default:
 //         return [];
 //     }
@@ -938,7 +938,7 @@ export default Register
 //           </div>
           
 //           <div className="grid grid-cols-3 gap-4 mb-4">
-//             {agreement.serviceType === "Motor" && (
+//             {agreement.serviceType === "Mooto" && (
 //               <>
 //                 <input value={serviceFormData.type} onChange={(e) => setServiceFormData({...serviceFormData, type: e.target.value})} placeholder="Type" className="border p-2 rounded" required />
 //                 <input value={serviceFormData.chassisNo} onChange={(e) => setServiceFormData({...serviceFormData, chassisNo: e.target.value})} placeholder="Chassis No" className="border p-2 rounded" required />
@@ -981,11 +981,11 @@ export default Register
 //               </>
 //             )}
             
-//             {agreement.serviceType === "Share" && (
+//             {agreement.serviceType === "Saami" && (
 //               <>
 //                 <input value={serviceFormData.companyName} onChange={(e) => setServiceFormData({...serviceFormData, companyName: e.target.value})} placeholder="Company Name" className="border p-2 rounded" required />
 //                 <input value={serviceFormData.acount} onChange={(e) => setServiceFormData({...serviceFormData, acount: e.target.value})} placeholder="Account Number" className="border p-2 rounded" required />
-//                 <input value={serviceFormData.shareDate} onChange={(e) => setServiceFormData({...serviceFormData, shareDate: e.target.value})} type="date" className="border p-2 rounded" required />
+//                 <input value={serviceFormData.SaamiDate} onChange={(e) => setServiceFormData({...serviceFormData, SaamiDate: e.target.value})} type="date" className="border p-2 rounded" required />
 //               </>
 //             )}
 //           </div>
@@ -1033,7 +1033,7 @@ export default Register
 //     console.log("SERVICE DATA:", serviceData);
 
 //     switch(agreement.serviceType) {
-//       case "Motor":
+//       case "Mooto":
 //         serviceDetails = `
 //           Nooca: ${serviceData?.type || ""}
 //           Chassis No: ${serviceData?.chassisNo || ""}
@@ -1062,11 +1062,11 @@ export default Register
 //           Lambarka Deed: ${serviceData?.deedNumber || ""}
 //         `;
 //         break;
-//       case "Share":
+//       case "Saami":
 //         serviceDetails = `
 //           Shirkadda: ${serviceData?.companyName}
 //           Akauntiga: ${serviceData?.acount }
-//           Taariikhda Share-ka: ${serviceData?.shareDate }
+//           Taariikhda Saami-ka: ${serviceData?.SaamiDate }
 //         `;
 //         break;
 //     }
@@ -1319,7 +1319,7 @@ export default Register
 //                         <option value="Buug">Buug</option>
 //                         <option value="Kaarka">Kaarka</option>
 //                       </select>
-//                     ) : field === "sharePercentage" ? (
+//                     ) : field === "SaamiPercentage" ? (
 //                       <input
 //                         type="number"
 //                         step="0.01"

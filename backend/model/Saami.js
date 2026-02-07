@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-const shareSchema = new mongoose.Schema(
+const SaamiSchema = new mongoose.Schema(
   {
     companyName: {
       type: String,
@@ -10,7 +10,7 @@ const shareSchema = new mongoose.Schema(
       type: Number,
      
     },
-    shareDate: {
+    SaamiDate: {
       type: Date,
     },
 
@@ -18,4 +18,4 @@ const shareSchema = new mongoose.Schema(
 
 );
 
-export default mongoose.model("Share", shareSchema);
+export default mongoose.model("Saami", SaamiSchema);

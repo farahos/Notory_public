@@ -30,8 +30,8 @@ const ViewAgreementLayout = () => {
         let serviceRes;
 
         switch (res.data.serviceType) {
-          case "Motor":
-            serviceRes = await axios.get(`/api/motors/${serviceId}`);
+          case "Mooto":
+            serviceRes = await axios.get(`/api/Mootos/${serviceId}`);
             break;
           case "Car":
             serviceRes = await axios.get(`/api/cars/${serviceId}`);
@@ -39,8 +39,8 @@ const ViewAgreementLayout = () => {
           case "Land":
             serviceRes = await axios.get(`/api/lands/${serviceId}`);
             break;
-          case "Share":
-            serviceRes = await axios.get(`/api/shares/${serviceId}`);
+          case "Saami":
+            serviceRes = await axios.get(`/api/Saamis/${serviceId}`);
             break;
           default:
             return;

@@ -25,8 +25,8 @@ serviceType: {
   enum: [
     "Land",
     "Car",
-    "Motor",
-    "Share",
+    "Mooto",
+    "Saami",
     "Wakaalad Guud",
     "Wakaalad Gaar",
   ],
@@ -133,7 +133,7 @@ serviceType: {
 
 agreementSchema.pre("validate", function (next) {
   if (this.service === "Wareejin") {
-    const allowed = ["Land", "Car", "Motor", "Share"];
+    const allowed = ["Land", "Car", "Mooto", "Saami"];
     if (!allowed.includes(this.serviceType)) {
       return next(new Error("Invalid serviceType for Wareejin"));
     }

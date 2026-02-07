@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-const motorcycleSchema = new mongoose.Schema(
+const MootocycleSchema = new mongoose.Schema(
   {
    
     // Nooca mootada
@@ -80,4 +80,4 @@ const motorcycleSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-export default mongoose.model("Motor", motorcycleSchema);
+export default mongoose.model("Mooto", MootocycleSchema);

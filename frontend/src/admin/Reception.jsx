@@ -8,7 +8,7 @@ const Agreement = () => {
   const [refNo, setRefNo] = useState("");
   const navigate = useNavigate();
   const serviceTypeOptions = {
-    Wareejin: ["Motor", "Car", "Land", "Share"],
+    Wareejin: ["Mooto", "Car", "Land", "Saami"],
     Wakaalad: ["Wakaalad Guud", "Wakaalad Gaar"],
     Daamaanad : ["Daaminul maal", "Shaqaaleysiin"],
     Cedeyn : ["Cadeyn Lacageed", "Cadeyn"],
@@ -19,7 +19,7 @@ const Agreement = () => {
   const [form, setForm] = useState({
     agreementDate: new Date().toISOString().split("T")[0],
     service: "Wareejin",
-    serviceType: "Motor",
+    serviceType: "Mooto",
     agreementType: "Beec",
     officeFee: "",
     sellingPrice: "",

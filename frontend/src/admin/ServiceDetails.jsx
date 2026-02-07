@@ -47,7 +47,7 @@ const ServiceDetails = ({ agreement, serviceData, setServiceData, fetchData }) =
 
   const getServiceFields = () => {
     switch(agreement.serviceType) {
-      case "Motor":
+      case "Mooto":
         return [
           { key: "type", label: "Nooca", type: "text" },
           { key: "chassisNo", label: "Chassis No", type: "text" },
@@ -81,11 +81,11 @@ const ServiceDetails = ({ agreement, serviceData, setServiceData, fetchData }) =
           { key: "deedNumber", label: "Deed Number", type: "text" },
           { key: "deedDate", label: "Deed Date", type: "date" }
         ];
-      case "Share":
+      case "Saami":
         return [
           { key: "companyName", label: "Company Name", type: "select" , options: ["Hormuud Telecom Somalia Inc (HorTel)", "Beco"] },
           { key: "accountNumber", label: "Account Number", type: "text" },
-          { key: "shareDate", label: "Share Date", type: "date" }
+          { key: "SaamiDate", label: "Saami Date", type: "date" }
         ];
       default:
         return [];
@@ -96,7 +96,7 @@ const ServiceDetails = ({ agreement, serviceData, setServiceData, fetchData }) =
     const service = serviceData || {};
     
     switch(agreement.serviceType) {
-      case "Motor":
+      case "Mooto":
         return (
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
             <div><span className="font-medium">Nooca:</span> {service.type || "N/A"}</div>
@@ -136,12 +136,12 @@ const ServiceDetails = ({ agreement, serviceData, setServiceData, fetchData }) =
             <div><span className="font-medium">Title No:</span> {service.titleNo || "N/A"}</div>
           </div>
         );
-      case "Share":
+      case "Saami":
         return (
           <div className="grid grid-cols-3 gap-4">
             <div><span className="font-medium">Shirkadda:</span> {service.companyName || "N/A"}</div>
             <div><span className="font-medium">Acount:</span> {service.accountNumber || "N/A"}</div>
-            <div><span className="font-medium">Date:</span> {service.shareDate?.split("T")[0] || "N/A"}</div>
+            <div><span className="font-medium">Date:</span> {service.SaamiDate?.split("T")[0] || "N/A"}</div>
           </div>
         );
       default:
